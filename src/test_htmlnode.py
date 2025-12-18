@@ -63,6 +63,31 @@ class TestHTMLNode(unittest.TestCase):
         node = LeafNode(tag="p", value="Hello, world!")
         self.assertEqual(node.to_html(), "<p>Hello, world!</p>")
 
+
+    def test_leaf_raw_text_renders_value_only(self):
+        node = LeafNode(tag=None, value="Hello, world!")
+        self.assertEqual(node.to_html(), "Hello, world!")
+
+    def test_leaf_tag_with_single_prop(self):
+        node = LeafNode("a", "Click me!", {"href": "https://www.google.com"})
+        self.assertEqual(node.to_html(), '<a href="https://www.google.com">Click me!</a>')
+
+    def test_leaf_tag_with_multiple_prop(self):
+        node = LeafNode("a", "Docs", {"href": "https://example.com", "target": "_blank"})
+        self.assertEqual(node.to_html(), '<a href="https://example.com" target="_blank">Docs</a>')
+
+    def test_leaf_to_html_raises_without_value(self):
+        with self.assertRaises(ValueError):
+            LeafNode(tag="p", value=None)
+        with self.assertRaises(ValueError):
+            LeafNode(None, None)
+
+    def test_leaf_rejects_non_string_value(self):
+        with self.assertRaises(TypeError):
+            LeafNode(tag="p", value=123)
+        with self.assertRaises(TypeError):
+            LeafNode(tag="p", value=True)
+
 if __name__ == "__main__":
     unittest.main()
 

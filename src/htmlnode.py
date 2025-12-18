@@ -31,7 +31,7 @@ class HTMLNode:
 class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
         super().__init__(tag=tag, value=value, children=None, props=props)
-        if value is None or tag is None:
+        if value is None:
         # both None or both not None
             raise ValueError("Provide value and tag")
         if not isinstance(value, str):
@@ -48,7 +48,7 @@ class LeafNode(HTMLNode):
         if self.props_to_html() == "":
             return f'<{self.tag}>{self.value}</{self.tag}>'
         else:
-            return f'< {self.props_to_html()}>"{self.value}"</{self.tag}>' 
+            return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>' 
 
 
 
