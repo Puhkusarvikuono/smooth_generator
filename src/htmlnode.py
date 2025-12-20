@@ -32,12 +32,11 @@ class LeafNode(HTMLNode):
     def __init__(self, tag, value, props=None):
         super().__init__(tag=tag, value=value, children=None, props=props)
         if value is None:
-        # both None or both not None
-            raise ValueError("Provide value and tag")
+            raise ValueError("Provide value")
         if not isinstance(value, str):
             raise TypeError("value must be str")
-        if not isinstance(value, str):
-            raise TypeError("tag must be str")
+        if tag is not None and not isinstance(tag, str):
+            raise TypeError("tag must be str or None")
         self.value = value
 
     def to_html(self):
@@ -49,6 +48,34 @@ class LeafNode(HTMLNode):
             return f'<{self.tag}>{self.value}</{self.tag}>'
         else:
             return f'<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>' 
+
+class ParentNode(HTMLNode):
+    def __init__(self, tag, children, props=None):
+        super().__init__(tag=tag, value=None, children=children, props=props)
+        if tag is None:
+            raise ValueError("Provide tag")
+        if children is None:
+            raise ValueError("Provide children")
+        if not isinstance(tag, str):
+            raise TypeError("tag must be str")
+
+    def to_html(self):
+        if self.tag is None:
+            raise ValueError("All parentnodes must have a tag")
+        if self.children is None:
+            raise ValueError("Value error: Parentnode missing children")
+        children_to_html_string = ""
+        for child in self.children:
+            if child.children is not None:
+                child.to_html()
+            children_to_html_string += child.to_html()
+        if self.props_to_html() == "":
+            return f'<{self.tag}>{children_to_html_string}</{self.tag}>'
+        else:
+            return f'<{self.tag}{self.props_to_html()}>{children_to_html_string}</{self.tag}>'
+            
+
+            
 
 
 
