@@ -186,3 +186,75 @@ class TestMarkDownToHTMLNodes(unittest.TestCase):
             html,
             "<div><pre><code>This is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
         )
+
+
+    def test_paragraphs(self):
+        md = """
+    This is **bolded** paragraph
+    text in a p
+    tag here
+
+    This is another paragraph with _italic_ text and `code` here
+
+    """
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
+
+
+        def test_unordered_list(self):
+            md = """
+        - First item
+        - Second item
+        - Third item
+        """
+
+            node = markdown_to_html_node(md)
+            html = node.to_html()
+            self.assertEqual(
+                html,
+                "<div><ul><li>First item</li><li>Second item</li><li>Third item</li></ul></div>"
+            )
+
+    def test_unordered_list(self):
+        md = """
+    - First item
+    - Second item
+    - Third item
+    """
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>First item</li><li>Second item</li><li>Third item</li></ul></div>",
+        )
+
+    def test_ordered_list(self):
+        md = """
+    1. First step
+    2. Second step
+    3. Third step
+    """
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ol><li>First step</li><li>Second step</li><li>Third step</li></ol></div>",
+        )
+
+    def test_list_with_inline_markdown(self):
+        md = """
+    - This item has **bold** text
+    - This one has _italic_ text
+    - And this has `code`
+    """
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><ul><li>This item has <b>bold</b> text</li><li>This one has <i>italic</i> text</li><li>And this has <code>code</code></li></ul></div>",
+        )

@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from text_utils import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
@@ -39,10 +40,10 @@ def block_to_block_type(markdown):
         return BlockType.QUOTE
     if all(line.startswith("- ") for line in lines):
         return BlockType.UNORDERED_LIST
-    for i in range(1, len(lines)):
-        if not lines[i].startswith(f"{i}. "):
-            return BlockType.PARAGRAPH
-    return BlockType.ORDERED_LIST
+    pattern = r'^\d+\.'
+    if all(re.match(pattern, line) for line in lines):
+        return BlockType.ORDERED_LIST
+    return BlockType.PARAGRAPH
 
 
 
@@ -72,6 +73,10 @@ def markdown_block_strip_quote_tag(markdown):
         return " ".join(new_lines)
     return markdown
 
+def markdown_block_strip_paragraph(markdown):
+    lines = markdown.split("\n")
+    return " ".join(lines)
+
 
 def markdown_block_unordered_list_to_html_tags(markdown):
     lines = markdown.split("\n")
@@ -95,7 +100,8 @@ def block_type_to_html_node(block_text, block_type):
 
     match block_type:
         case BlockType.PARAGRAPH:
-            nodes = text_to_children(block_text)
+            stripped_text = markdown_block_strip_paragraph(block_text)
+            nodes = text_to_children(stripped_text)
             tag = "p"
         case BlockType.HEADING:
             stripped_text, header_counter = markdown_block_strip_header(block_text)
