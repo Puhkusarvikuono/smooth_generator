@@ -8,13 +8,9 @@ from markdown_utils import markdown_to_html_node, extract_title
 def main():
     public_path = os.path.abspath("public/")
     static_path = os.path.abspath("static/")
-    from_path = os.path.abspath("content/index.md")
-    template_path = os.path.abspath("template.html")
-    dest_path = os.path.abspath("public/index.html")
     safe_remove(public_path)
     copy_function(static_path, public_path)
-    generate_page(from_path, template_path, dest_path)
-
+    generate_pages_recursive("content/", "template.html", "public/")
 
 def safe_remove(path):
     if path != os.path.abspath("public/"):
@@ -27,20 +23,19 @@ def safe_remove(path):
             return
         print(f"There are these files here: {files}")
         for file in files:
-            print(f"Attempting to delete {file}")
             file_path = path + "/" + file
             if os.path.isfile(file_path):
-                print("Revving up.")
+                print(f"Attempting to delete file: {file}")
                 try:
                     os.remove(file_path)
                 except Exception as e:
                     print(f"Error deleting: {e}")
-                print("Poof")
+                print(f"Deleted file: {file}")
             if os.path.isdir(file_path):
                 try:
-                    print("Attempting to delete directory")
-                    print("shutil poof")
+                    print(f"Attempting to delete directory: {file_path}")
                     shutil.rmtree(file_path)
+                    print(f"Deleted directory, subdirectories and files")
                 except Exception as e:
                     print(f"Error deleting directory: {e}")
         print("All files gone")
@@ -65,7 +60,7 @@ def copy_function(copy_from, copy_to):
             except Exception as e:
                 print(f"Error creating directory: {e}")
             print(f"Copied directory to {to_file_path}  Moving to subfiles.")
-            copy_function(from_file_path + "/", to_file_path + "/")
+            copy_function(from_file_path + "/", to_file_path)
     print("Everything is copied.")
 
 def generate_page(from_path, template_path, dest_path):
@@ -77,10 +72,40 @@ def generate_page(from_path, template_path, dest_path):
     content = markdown_to_html_node(markdown).to_html()
     title = extract_title(markdown)
     new_page = template.replace("{{ Title }}", title).replace("{{ Content }}", content)
+    directory_creator(dest_path)
     with open(dest_path, mode='w') as file:
+        print(f"Creating file: {dest_path}")
         file.write(new_page)
 
+def directory_creator(dest_path):
+    if not dest_path.startswith("public/"):
+        raise Exception("Invalid destionation directory")
+    file_name = dest_path.split("/")[-1]
+    if file_name == "":
+        raise Exception("No filename given.")
+    directory_path = dest_path.rstrip(file_name)
+    if os.path.exists(directory_path):
+        print("Directory already exist")
+        return
+    try:
+        print("Trying to create missing directories.")
+        os.makedirs(directory_path)
+        print(f"Created directory path {directory_path}")
+    except Exception as e:
+        print(f"Something went wrong: {e}")
 
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    content_files = os.listdir(dir_path_content)
+    for content_file in content_files:
+        dest_file_path = os.path.join(dest_dir_path, content_file)
+        content_file_path = os.path.join(dir_path_content, content_file)
+        if content_file.endswith(".md"):
+            print(f"Found Markdown file {content_file} in {dir_path_content}")
+            generation_dest_path = dest_file_path.replace(".md", ".html")
+            generate_page(content_file_path, template_path, generation_dest_path)
+        if os.path.isdir(content_file_path):
+            print(f"Moving to subdirectory: {content_file}.")
+            generate_pages_recursive(content_file_path, template_path, dest_file_path)
 
 if __name__ == "__main__":
     main()
