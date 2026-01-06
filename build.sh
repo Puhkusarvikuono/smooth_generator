@@ -1,1 +1,1 @@
-python3 src/main.py "/Puhkusarvikuono/"
+python3 src/main.py "/smooth_generator/"
