@@ -11,6 +11,7 @@ from markdown_utils import (
     markdown_block_ordered_list_to_html_tags,
     text_to_children,
     markdown_to_html_node,
+    extract_title
 )
 from htmlnode import HTMLNode, LeafNode, ParentNode
 from text_utils import split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes
@@ -78,6 +79,25 @@ This is the same paragraph on a new line
                 "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
                 "- This is a list\n- with items",
             ],
+        )
+
+    def test_markdown_headers_to_blocks(self):
+        md = """
+#This is a header
+
+## This is another header
+
+### This is a third header with white space    
+
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "#This is a header",
+                "## This is another header",
+                "### This is a third header with white space",
+            ]
         )
 
 class TestBlockToBlockType(unittest.TestCase):
@@ -258,3 +278,43 @@ class TestMarkDownToHTMLNodes(unittest.TestCase):
             html,
             "<div><ul><li>This item has <b>bold</b> text</li><li>This one has <i>italic</i> text</li><li>And this has <code>code</code></li></ul></div>",
         )
+
+class TestExtractTitle(unittest.TestCase):
+
+    def test_extract_title(self):
+        md = """
+    # Here we have the title with white space:   
+
+    ## Not the title
+
+    ### Not the title
+    """
+        title = extract_title(md)
+        self.assertEqual(
+            "Here we have the title with white space:",
+            title,
+        )
+
+    def test_hello_title(self):
+        md = """
+    # Hello
+    """
+        title = extract_title(md)
+        self.assertEqual(
+            title,
+            "Hello"
+        )
+
+    def test_empty_title(self):
+        md = """
+    #     
+    """
+        with self.assertRaises(Exception):
+            title = extract_title(md)
+
+    def test_no_title(self):
+        md = """
+    ## False title
+    """
+        with self.assertRaises(Exception):
+            title = extract_title(md)

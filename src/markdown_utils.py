@@ -55,7 +55,7 @@ def markdown_block_strip_header(markdown):
                 header_counter += 1
             else:
                 break
-        return markdown.lstrip("#"), header_counter
+        return markdown.lstrip("# "), header_counter
     return markdown, 0
 
 def markdown_block_strip_code_tag(markdown):
@@ -68,7 +68,7 @@ def markdown_block_strip_quote_tag(markdown):
     if all(line.startswith(">") for line in lines):
         new_lines = []
         for line in lines:
-            new_line = line.lstrip(">")
+            new_line = line.lstrip("> ")
             new_lines.append(new_line)
         return " ".join(new_lines)
     return markdown
@@ -144,3 +144,17 @@ def markdown_to_html_node(markdown):
         html_parent = block_type_to_html_node(block, block_type)
         parent_nodes.append(html_parent)
     return ParentNode(tag="div", children=parent_nodes)
+
+def extract_title(markdown):
+    blocks = markdown_to_blocks(markdown)
+    for block in blocks:
+        if block_to_block_type(block) == BlockType.HEADING:
+            title, header_counter = markdown_block_strip_header(block)
+            if header_counter == 1:
+                if title.strip() == "":
+                    raise Exception("Empty title")
+                return title
+    raise Exception("Title not found")
+
+
+
