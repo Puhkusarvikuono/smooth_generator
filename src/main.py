@@ -10,11 +10,11 @@ def main():
         basepath = "/"
     else:
         basepath = sys.argv[1]
-    public_path = os.path.abspath("public/")
+    docs_path = os.path.abspath("docs/")
     static_path = os.path.abspath("static/")
-    safe_remove(public_path)
-    copy_function(static_path, public_path)
-    generate_pages_recursive("content/", "template.html", "public/", basepath)
+    safe_remove(docs_path)
+    copy_function(static_path, docs_path)
+    generate_pages_recursive("content/", "template.html", "docs/", basepath)
 
 def safe_remove(path):
     if os.path.exists(path):
@@ -79,7 +79,7 @@ def generate_page(from_path, template_path, dest_path, basepath):
         file.write(new_page)
 
 def directory_creator(dest_path):
-    if not dest_path.startswith("public/"):
+    if not dest_path.startswith("docs/"):
         raise Exception("Invalid destionation directory")
     file_name = dest_path.split("/")[-1]
     if file_name == "":
