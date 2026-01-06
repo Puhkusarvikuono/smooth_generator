@@ -1,4 +1,4 @@
-import os, shutil
+import os, shutil, sys
 from textnode import TextNode
 from htmlnode import HTMLNode, ParentNode
 from markdown_utils import markdown_to_html_node, extract_title
@@ -6,16 +6,17 @@ from markdown_utils import markdown_to_html_node, extract_title
 
 
 def main():
+    if len(sys.argv) < 2:
+        basepath = "/"
+    else:
+        basepath = sys.argv[1]
     public_path = os.path.abspath("public/")
     static_path = os.path.abspath("static/")
     safe_remove(public_path)
     copy_function(static_path, public_path)
-    generate_pages_recursive("content/", "template.html", "public/")
+    generate_pages_recursive("content/", "template.html", "public/", basepath)
 
 def safe_remove(path):
-    if path != os.path.abspath("public/"):
-        print("Error")
-        return
     if os.path.exists(path):
         files = os.listdir(path)
         if files == []:
@@ -63,7 +64,7 @@ def copy_function(copy_from, copy_to):
             copy_function(from_file_path + "/", to_file_path)
     print("Everything is copied.")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f"Generating from {from_path} to {dest_path} using {template_path}")
     with open(from_path) as file:
         markdown = file.read()
@@ -71,7 +72,7 @@ def generate_page(from_path, template_path, dest_path):
         template = file.read()
     content = markdown_to_html_node(markdown).to_html()
     title = extract_title(markdown)
-    new_page = template.replace("{{ Title }}", title).replace("{{ Content }}", content)
+    new_page = template.replace("{{ Title }}", title).replace("{{ Content }}", content).replace('href="/', f'href="{basepath}').replace('src="/', f'src="{basepath}')
     directory_creator(dest_path)
     with open(dest_path, mode='w') as file:
         print(f"Creating file: {dest_path}")
@@ -94,7 +95,7 @@ def directory_creator(dest_path):
     except Exception as e:
         print(f"Something went wrong: {e}")
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     content_files = os.listdir(dir_path_content)
     for content_file in content_files:
         dest_file_path = os.path.join(dest_dir_path, content_file)
@@ -102,10 +103,10 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
         if content_file.endswith(".md"):
             print(f"Found Markdown file {content_file} in {dir_path_content}")
             generation_dest_path = dest_file_path.replace(".md", ".html")
-            generate_page(content_file_path, template_path, generation_dest_path)
+            generate_page(content_file_path, template_path, generation_dest_path, basepath)
         if os.path.isdir(content_file_path):
             print(f"Moving to subdirectory: {content_file}.")
-            generate_pages_recursive(content_file_path, template_path, dest_file_path)
+            generate_pages_recursive(content_file_path, template_path, dest_file_path, basepath)
 
 if __name__ == "__main__":
     main()
